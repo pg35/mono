@@ -7584,13 +7584,63 @@ var m = reactDomExports;
   client.createRoot = m.createRoot;
   client.hydrateRoot = m.hydrateRoot;
 }
+window.ajaxTest = {
+  responses: {},
+  result: 1
+  //1 success, 0 failure,
+};
+function doAjaxDummy(args, onSuccess, onFail, onFinally) {
+  console.log("ajax args", args, window.ajaxTest);
+  setTimeout(() => {
+    window.ajaxTest.result ? onSuccess && onSuccess({
+      success: true,
+      data: window.ajaxTest.responses[args.data.action]
+    }) : onFail && onFail(
+      getAjaxFailReason(
+        {
+          ...{ status: 500 },
+          ...window.ajaxTest.responses[args.data.action]
+        },
+        "timeout1"
+      )
+    );
+    onFinally && onFinally();
+  }, 1e3);
+}
+function getAjaxFailReason(x2, exception) {
+  var message;
+  var statusErrorMap = {
+    0: "Not connected.Please verify your network connection.",
+    400: "Server understood the request, but request content was invalid.",
+    401: "Unauthorized access.",
+    403: "Forbidden resource can't be accessed.",
+    500: "Internal server error.",
+    503: "Service unavailable."
+  };
+  console.log(x2, exception);
+  if (x2 && "undefined" !== typeof x2.status && exception !== "abort") {
+    message = statusErrorMap[x2.status];
+  }
+  if (!message) {
+    if (exception === "parsererror") {
+      message = "Parsing JSON failed";
+    } else if (exception === "timeout") {
+      message = "Request Timed out";
+    } else if (exception === "abort") {
+      message = "Request aborted";
+    } else {
+      message = "";
+    }
+  }
+  return message;
+}
 const defaultConfig = {
   enable: false,
   type: "",
   valueType: "fixed",
   value: ""
 };
-const initialState = [
+const initialState1 = [
   {
     "*": defaultConfig,
     guest: defaultConfig
@@ -7600,6 +7650,8 @@ const initialState = [
     x23: defaultConfig
   }
 ];
+window.pxqpricing = initialState1;
+const initialState = window.pxqpricing;
 function formatFloat(value) {
   const n2 = Number(value);
   return !isNaN(n2) ? n2.toFixed(2) : "0.00";
@@ -7617,8 +7669,8 @@ function Row({ role, config, onChange }) {
         onChange: (e) => onChange(role, "enable", e.target.checked)
       }
     ) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "first-letter:uppercase text-left whitespace-nowrap px-4 py-2 text-gray-700", children: "*" === role ? "All users" : role }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "whitespace-nowrap px-4 py-2 text-gray-700", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "font-bold first-letter:uppercase text-left px-4 py-2 text-gray-700", children: "*" === role ? "All users" : role }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "px-4 py-2 text-gray-700", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
       "select",
       {
         name: "type",
@@ -7632,7 +7684,7 @@ function Row({ role, config, onChange }) {
         ]
       }
     ) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "whitespace-nowrap px-4 py-2 text-gray-700", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "px-4 py-2 text-gray-700", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
       "select",
       {
         name: "valueType",
@@ -7645,7 +7697,7 @@ function Row({ role, config, onChange }) {
         ]
       }
     ) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "whitespace-nowrap px-4 py-2 text-gray-700", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+    /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "px-4 py-2 text-gray-700", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
       "input",
       {
         type: "number",
@@ -7665,6 +7717,9 @@ function Row({ role, config, onChange }) {
 }
 function App() {
   const [state, setState] = reactExports.useState(initialState);
+  const [isFetching, setIsFetching] = reactExports.useState(false);
+  const [error, setError] = reactExports.useState(null);
+  const [success, setSuccess] = reactExports.useState(null);
   function handleChange(role, name, value) {
     console.log(role, name, value);
     const newState = [{ ...state[0] }, { ...state[1] }];
@@ -7679,15 +7734,15 @@ function App() {
     setState(newState);
   }
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "overflow-x-auto", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("table", { className: "border-collapse w-full md:mx-auto md:w-auto", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("thead", { className: "ltr:text-left rtl:text-right", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("tr", { className: "bg-gray-700 text-white", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white", children: "Enable" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "overflow-x-auto", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("table", { className: "border-collapse w-auto", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("thead", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("tr", { className: "bg-gray-700 text-white", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "w-[80px] text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white", children: "Enable" }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white", children: "Role" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white", children: "Price change action" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white", children: "Price change type" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "text-left whitespace-nowrap px-4 py-2 font-medium", children: "Value" })
+        /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "w-[140px] text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white", children: "Price change action" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "w-[110px] text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white", children: "Price change type" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "w-[110px] min-w-[110px] text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white", children: "Value" })
       ] }) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("tbody", { className: "divide-y divide-gray-200", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("tbody", { children: [
         Object.keys(state[0]).map((x2) => {
           const config = state[0][x2];
           return /* @__PURE__ */ jsxRuntimeExports.jsx(Row, { role: x2, config, onChange: handleChange }, x2);
@@ -7698,16 +7753,54 @@ function App() {
         })
       ] })
     ] }) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-left mt-8", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "button",
-      {
-        className: "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded",
-        onClick: () => {
-          console.log(state);
-        },
-        children: "Save"
-      }
-    ) })
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-left mt-8", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "button",
+        {
+          className: "button button-primary",
+          disabled: isFetching,
+          onClick: () => {
+            const w2 = window;
+            w2.ajaxTest.responses["pxqpricing_save"] = {
+              saved: true
+            };
+            w2.ajaxTest.result = 0;
+            setIsFetching(true);
+            setError(null);
+            setSuccess(null);
+            doAjaxDummy(
+              {
+                type: "POST",
+                data: {
+                  action: "pxqpricing_save",
+                  state: JSON.stringify(state)
+                }
+              },
+              function() {
+                setSuccess("Saved");
+              },
+              function(msg) {
+                setError(msg);
+              },
+              function() {
+                setIsFetching(false);
+              }
+            );
+          },
+          children: isFetching ? "Saving..." : "Save"
+        }
+      ),
+      success || error ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "span",
+        {
+          className: `ml-4 ${success ? "text-green-900" : "text-red-900"}`,
+          children: [
+            success ? "Saved" : null,
+            error ? error : null
+          ]
+        }
+      ) : null
+    ] })
   ] });
 }
 client.createRoot(document.getElementById("root")).render(

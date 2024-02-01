@@ -16,7 +16,7 @@
 
     /* Linting */
     "strict": true,
-    "noUnusedLocals": true,
+    "noUnusedLocals": false,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     // st - added for shadcn
@@ -25,7 +25,9 @@
       "@/*": ["./@/*"],
     },
     // end
+    "noImplicitAny": false,
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }],
+  "allowJs": true,
 }

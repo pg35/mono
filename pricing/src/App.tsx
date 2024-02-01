@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { doAjax2, doAjaxDummy as doAjax } from "./ajax";
 interface Config {
   enable: boolean;
   type: "discount" | "surcharge" | "";
@@ -20,7 +20,7 @@ const defaultConfig: Config = {
   valueType: "fixed",
   value: "",
 };
-const initialState: State = [
+const initialState1: State = [
   {
     "*": defaultConfig,
     guest: defaultConfig,
@@ -30,6 +30,8 @@ const initialState: State = [
     x23: defaultConfig,
   },
 ];
+(window as any).pxqpricing = initialState1;
+const initialState = (window as any).pxqpricing;
 type RowProps = {
   role: string;
   config: Config;
@@ -53,10 +55,10 @@ function Row({ role, config, onChange }: RowProps) {
           onChange={(e) => onChange(role, "enable", e.target.checked)}
         />
       </td>
-      <td className="first-letter:uppercase text-left whitespace-nowrap px-4 py-2 text-gray-700">
+      <td className="font-bold first-letter:uppercase text-left px-4 py-2 text-gray-700">
         {"*" === role ? "All users" : role}
       </td>
-      <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+      <td className="px-4 py-2 text-gray-700">
         <select
           name="type"
           value={config.type}
@@ -68,7 +70,7 @@ function Row({ role, config, onChange }: RowProps) {
           <option value="surcharge">Increase</option>
         </select>
       </td>
-      <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+      <td className="px-4 py-2 text-gray-700">
         <select
           name="valueType"
           value={config.valueType}
@@ -79,7 +81,7 @@ function Row({ role, config, onChange }: RowProps) {
           <option value="percent">Percent</option>
         </select>
       </td>
-      <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+      <td className="px-4 py-2 text-gray-700">
         <input
           type="number"
           name="value"
@@ -100,6 +102,10 @@ function Row({ role, config, onChange }: RowProps) {
 
 export default function App() {
   const [state, setState] = useState<State>(initialState);
+  const [isFetching, setIsFetching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
   function handleChange(role: string, name: string, value: string | boolean) {
     console.log(role, name, value);
     const newState: State = [{ ...state[0] }, { ...state[1] }];
@@ -124,19 +130,19 @@ export default function App() {
         <table className="border-collapse w-auto">
           <thead>
             <tr className="bg-gray-700 text-white">
-              <th className="text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white">
+              <th className="w-[80px] text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white">
                 Enable
               </th>
               <th className="text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white">
                 Role
               </th>
-              <th className="text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white">
+              <th className="w-[140px] text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white">
                 Price change action
               </th>
-              <th className="text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white">
+              <th className="w-[110px] text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white">
                 Price change type
               </th>
-              <th className="text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white">
+              <th className="w-[110px] min-w-[110px] text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white">
                 Value
               </th>
             </tr>
@@ -158,7 +164,48 @@ export default function App() {
         </table>
       </div>
       <div className="text-left mt-8">
-        <button onClick={() => {}}>Save</button>
+        <button
+          className="button button-primary"
+          disabled={isFetching}
+          onClick={() => {
+            const w = window as any;
+            w.ajaxTest.responses["pxqpricing_save"] = {
+              saved: true,
+            };
+            w.ajaxTest.result = 0;
+            setIsFetching(true);
+            setError(null);
+            setSuccess(null);
+            doAjax(
+              {
+                type: "POST",
+                data: {
+                  action: "pxqpricing_save",
+                  state: JSON.stringify(state),
+                },
+              },
+              function () {
+                setSuccess("Saved");
+              },
+              function (msg: string) {
+                setError(msg);
+              },
+              function () {
+                setIsFetching(false);
+              },
+            );
+          }}
+        >
+          {isFetching ? "Saving..." : "Save"}
+        </button>
+        {success || error ? (
+          <span
+            className={`ml-4 ${success ? "text-green-900" : "text-red-900"}`}
+          >
+            {success ? "Saved" : null}
+            {error ? error : null}
+          </span>
+        ) : null}
       </div>
     </div>
   );

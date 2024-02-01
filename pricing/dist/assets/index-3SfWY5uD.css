@@ -2,6 +2,9 @@
 .fixed {
     position: fixed
 }
+.ml-4 {
+    margin-left: 1rem
+}
 .mt-8 {
     margin-top: 2rem
 }
@@ -14,20 +17,26 @@
 .w-5 {
     width: 1.25rem
 }
+.w-\[110px\] {
+    width: 110px
+}
+.w-\[140px\] {
+    width: 140px
+}
+.w-\[80px\] {
+    width: 80px
+}
+.w-auto {
+    width: auto
+}
 .w-full {
     width: 100%
 }
+.min-w-\[110px\] {
+    min-width: 110px
+}
 .border-collapse {
     border-collapse: collapse
-}
-.divide-y > :not([hidden]) ~ :not([hidden]) {
-    --tw-divide-y-reverse: 0;
-    border-top-width: calc(1px * calc(1 - var(--tw-divide-y-reverse)));
-    border-bottom-width: calc(1px * var(--tw-divide-y-reverse))
-}
-.divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
-    --tw-divide-opacity: 1;
-    border-color: rgb(229 231 235 / var(--tw-divide-opacity))
 }
 .overflow-x-auto {
     overflow-x: auto
@@ -51,10 +60,6 @@
 .border-white {
     --tw-border-opacity: 1;
     border-color: rgb(255 255 255 / var(--tw-border-opacity))
-}
-.bg-blue-500 {
-    --tw-bg-opacity: 1;
-    background-color: rgb(59 130 246 / var(--tw-bg-opacity))
 }
 .bg-gray-700 {
     --tw-bg-opacity: 1;
@@ -85,6 +90,14 @@
     --tw-text-opacity: 1;
     color: rgb(55 65 81 / var(--tw-text-opacity))
 }
+.text-green-900 {
+    --tw-text-opacity: 1;
+    color: rgb(20 83 45 / var(--tw-text-opacity))
+}
+.text-red-900 {
+    --tw-text-opacity: 1;
+    color: rgb(127 29 29 / var(--tw-text-opacity))
+}
 .text-white {
     --tw-text-opacity: 1;
     color: rgb(255 255 255 / var(--tw-text-opacity))
@@ -112,23 +125,4 @@
 }
 .first-letter\:uppercase::first-letter {
     text-transform: uppercase
-}
-.hover\:bg-blue-700:hover {
-    --tw-bg-opacity: 1;
-    background-color: rgb(29 78 216 / var(--tw-bg-opacity))
-}
-@media (min-width: 768px) {
-    .md\:mx-auto {
-        margin-left: auto;
-        margin-right: auto
-    }
-    .md\:w-auto {
-        width: auto
-    }
-}
-.ltr\:text-left:where([dir="ltr"], [dir="ltr"] *) {
-    text-align: left
-}
-.rtl\:text-right:where([dir="rtl"], [dir="rtl"] *) {
-    text-align: right
 }
