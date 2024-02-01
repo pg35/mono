@@ -1,0 +1,122 @@
+import { useState } from "react";
+import reactLogo from "./assets/react.svg";
+import viteLogo from "/vite.svg";
+//import "./App.css";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
+
+export function SwitchDemo() {
+  return (
+    <div className="flex items-center space-x-2">
+      <Switch id="airplane-mode" />
+      <Label htmlFor="airplane-mode">Airplane Mode</Label>
+    </div>
+  );
+}
+export function CheckboxDemo() {
+  return (
+    <div className="flex items-center space-x-2">
+      <Checkbox id="terms" />
+      <label
+        htmlFor="terms"
+        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+      >
+        Accept terms and conditions
+      </label>
+    </div>
+  );
+}
+
+interface Config {
+  enable: boolean;
+  type: "discount" | "surcharge";
+  valueType: "fixed" | "percent";
+  value: number;
+}
+
+type State = [
+  {
+    "*": Config;
+    guest: Config;
+  },
+  {
+    [role: string]: Config;
+  },
+];
+const defaultConfig: Config = {
+  enable: false,
+  type: "discount",
+  valueType: "fixed",
+  value: 0.0,
+};
+const initialState: State = [
+  {
+    "*": defaultConfig,
+    guest: defaultConfig,
+  },
+  {},
+];
+
+export function RadioGroupDemo() {
+  return (
+    <RadioGroup defaultValue="comfortable">
+      <div className="flex items-center space-x-2">
+        <RadioGroupItem value="default" id="r1" />
+        <Label htmlFor="r1">Default1</Label>
+      </div>
+      <div className="flex items-center space-x-2">
+        <RadioGroupItem value="comfortable" id="r2" />
+        <Label htmlFor="r2">Comfortable</Label>
+      </div>
+      <div className="flex items-center space-x-2">
+        <RadioGroupItem value="compact" id="r3" />
+        <Label htmlFor="r3">Compact</Label>
+      </div>
+    </RadioGroup>
+  );
+}
+
+function App() {
+  const [state, setState] = useState<State>(initialState);
+  return <SwitchDemo />;
+  return <CheckboxDemo />;
+  //return <CheckboxDemo />;
+  return <RadioGroupDemo />;
+  return <Button>Button1114</Button>;
+  return [1, 2, 3, 4].map((x) => <h1>{x}</h1>);
+  return <h1>{state[0]["*"].valueType}</h1>;
+}
+
+function App1() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <>
+      <div>
+        <a href="https://vitejs.dev" target="_blank">
+          <img src={viteLogo} className="logo" alt="Vite logo" />
+        </a>
+        <a href="https://react.dev" target="_blank">
+          <img src={reactLogo} className="logo react" alt="React logo" />
+        </a>
+      </div>
+      <h1>Vite + React</h1>
+      <div className="card">
+        <button onClick={() => setCount((count) => count + 1)}>
+          count is {count}
+        </button>
+        <p>
+          Edit <code>src/App.tsx</code> and save to test HMR
+        </p>
+      </div>
+      <p className="read-the-docs">
+        Click on the Vite and React logos to learn more
+      </p>
+    </>
+  );
+}
+
+export default App;
