@@ -30,8 +30,12 @@ const initialState1: State = [
     x23: defaultConfig,
   },
 ];
-(window as any).pxqpricing = initialState1;
-const initialState = (window as any).pxqpricing;
+(window as any).pxqpricing = JSON.stringify({
+  initialState: initialState1,
+  saveNonce: "savenonce",
+});
+const pxqpricing = JSON.parse((window as any).pxqpricing);
+const initialState = pxqpricing.initialState;
 type RowProps = {
   role: string;
   config: Config;
@@ -172,7 +176,7 @@ export default function App() {
             w.ajaxTest.responses["pxqpricing_save"] = {
               saved: true,
             };
-            w.ajaxTest.result = 0;
+            w.ajaxTest.result = 1;
             setIsFetching(true);
             setError(null);
             setSuccess(null);
@@ -182,6 +186,7 @@ export default function App() {
                 data: {
                   action: "pxqpricing_save",
                   state: JSON.stringify(state),
+                  nonce: pxqpricing.saveNonce,
                 },
               },
               function () {
