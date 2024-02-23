@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { doAjax2, doAjaxDummy as doAjax } from "./ajax";
+import { doAjax } from "./ajax";
 interface Config {
   enable: boolean;
   type: "discount" | "surcharge" | "";
@@ -30,6 +30,7 @@ const initialState1: State = [
     x23: defaultConfig,
   },
 ];
+(window as any).ajaxurl = "https://mpcs6g-8080.csb.app";
 (window as any).pxqpricing = JSON.stringify({
   initialState: initialState1,
   saveNonce: "savenonce",
@@ -172,11 +173,6 @@ export default function App() {
           className="button button-primary"
           disabled={isFetching}
           onClick={() => {
-            const w = window as any;
-            w.ajaxTest.responses["pxqpricing_save"] = {
-              saved: true,
-            };
-            w.ajaxTest.result = 1;
             setIsFetching(true);
             setError(null);
             setSuccess(null);
@@ -189,7 +185,8 @@ export default function App() {
                   nonce: pxqpricing.saveNonce,
                 },
               },
-              function () {
+              function (res: any) {
+                //console.log(res);
                 setSuccess("Saved");
               },
               function (msg: string) {
