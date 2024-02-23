@@ -8,7 +8,7 @@ import {
 } from "react-beautiful-dnd";
 import classNames from "classnames";
 import { StrictModeDroppable } from "./StrictModeDroppable";
-import { ListType } from "../reducers/listReducer";
+import { List } from "../reducers/listReducer";
 
 export type RenderItemType<T> = (
   item: T,
@@ -18,7 +18,7 @@ export type RenderItemType<T> = (
 ) => JSX.Element;
 
 export type SortableListProps<T> = {
-  list: ListType<T>;
+  list: List<T>;
   listId: string;
   renderItem: RenderItemType<T>;
   emptyListMsg: string;

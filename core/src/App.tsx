@@ -1,28 +1,23 @@
 import React, { useState, useCallback, useReducer } from "react";
 import { DragDropContext, DropResult } from "react-beautiful-dnd";
-import {
-  useListReducer,
-  ListType,
-  ADD_ITEM,
-  SWAP_ITEMS,
-} from "./reducers/listReducer";
+import { useListReducer, List, Id } from "./reducers/listReducer";
 import SortableList, { RenderItemType } from "./components/SortableList";
 
-export interface ConditionType {
-  id: number;
+export interface Condition {
+  id: Id;
   keyId: number;
   opId: number;
   value: string | number | boolean | string[] | number[];
 }
-function Condition(props: ConditionType) {
+function Condition(props: Condition) {
   return <span className="font-bold">{props.id}</span>;
 }
 
 let nextId = 0;
-function createCondition(): ConditionType {
+function createCondition(): Condition {
   return { id: ++nextId, keyId: 0, opId: 0, value: "" };
 }
-const emptyList: ListType<ConditionType> = {
+const emptyList: List<Condition> = {
   items: {},
   itemOrder: [],
   selected: null,
@@ -30,7 +25,7 @@ const emptyList: ListType<ConditionType> = {
 
 function App() {
   const [list, dispatch] = useListReducer(emptyList);
-  const renderItem: RenderItemType<ConditionType> = (
+  const renderItem: RenderItemType<Condition> = (
     item,
     index,
     dragHandleProps,
@@ -57,9 +52,9 @@ function App() {
           return;
         }
         dispatch({
-          type: SWAP_ITEMS,
-          from: source.index,
-          to: destination.index,
+          type: "swap_items",
+          aItemId: source.index,
+          bItemId: destination.index,
         });
       }}
     >
@@ -71,7 +66,9 @@ function App() {
           renderItem={renderItem}
         />
         <button
-          onClick={() => dispatch({ type: ADD_ITEM, item: createCondition() })}
+          onClick={() =>
+            dispatch({ type: "add_item", item: createCondition() })
+          }
         >
           Add
         </button>
