@@ -24,6 +24,7 @@ export default function RuleComponent({
         condition={item}
         dispatch={dispatch}
         dragHandleProps={dragHandleProps}
+        ruleId={rule.id}
       />
     </div>
   );

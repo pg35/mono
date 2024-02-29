@@ -1,69 +1,16 @@
 import React, { useState, useCallback, useReducer } from "react";
 import { DragDropContext, DropResult } from "react-beautiful-dnd";
-import {
-  useListReducer,
-  List,
-  Id,
-  ListAction,
-  listReducer,
-} from "./reducers/listReducer";
-import SortableList, { RenderItemType } from "./components/SortableList";
 import { Condition, Rule, Union } from "./types";
-import { createRule } from "./utils";
+import SortableList, { RenderItemType } from "./components/SortableList";
 import RuleComponent from "./components/Rule";
+import { reducer, RuleAction, ConditionAction } from "./reducers/appReducer";
+import { createEmptyList } from "./reducers/listReducer";
+import { createRule } from "./utils";
 
-const emptyList2: List<Condition> = {
-  items: {},
-  itemOrder: [],
-  selected: null,
-};
-const emptyList: List<Rule> = {
-  items: {},
-  itemOrder: [],
-  selected: null,
-};
-
-interface App {
-  fees: List<Rule>;
-}
-type RuleAction = ListAction<Rule> & { listId: "fees" };
-type ConditionAction = ListAction<Condition> & {
-  listId: "fees";
-  ruleId: number;
-};
-type Dispatch = React.Dispatch<RuleAction | ConditionAction>;
-
-function reducer(state: App, action: RuleAction | ConditionAction) {
-  if ("fees" === action.listId) {
-    let fees = null;
-    if ("undefined" !== typeof (action as ConditionAction).ruleId) {
-      const conditionAction = action as ConditionAction;
-      fees = {
-        ...state.fees,
-        items: {
-          ...state.fees.items,
-          [conditionAction.ruleId]: {
-            ...state.fees.items[conditionAction.ruleId],
-            conditions: listReducer(
-              state.fees.items[conditionAction.ruleId].conditions,
-              action as ListAction<Condition>,
-            ),
-          },
-        },
-      };
-    } else {
-      fees = listReducer(state.fees, action as ListAction<Rule>);
-    }
-    return {
-      ...state,
-      fees,
-    };
-  }
-  return state;
-}
+//type Dispatch = React.Dispatch<RuleAction | ConditionAction>;
 
 function App() {
-  const [state, dispatch] = useReducer(reducer, { fees: emptyList });
+  const [state, dispatch] = useReducer(reducer, { fees: createEmptyList() });
   const renderItem: RenderItemType<Rule> = (
     item,
     index,

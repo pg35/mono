@@ -1,6 +1,6 @@
 import { useReducer } from "react";
+import { Id } from "../types";
 
-export type Id = number;
 export interface List<T> {
   items: { [id: Id]: T };
   itemOrder: Id[];
@@ -14,6 +14,13 @@ export type ListAction<T> =
   | { type: "swap_items"; aItemId: Id; bItemId: Id }
   | { type: "remove_item" | "select_item"; itemId: Id };
 
+export function createEmptyList() {
+  return {
+    items: {},
+    itemOrder: [],
+    selected: null,
+  };
+}
 export function useListReducer<T extends { id: Id }>(initialState: List<T>) {
   function reducer(state: List<T>, action: ListAction<T>): List<T> {
     switch (action.type) {

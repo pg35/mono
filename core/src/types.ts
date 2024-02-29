@@ -1,5 +1,7 @@
-import { Id, List } from "./reducers/listReducer";
+import { List } from "./reducers/listReducer";
+import { keys, operators } from "./config";
 
+export type Id = number;
 export type Union<T, U> = {
   [Property in keyof T | keyof U]: Property extends keyof T
     ? T[Property]
@@ -7,18 +9,21 @@ export type Union<T, U> = {
       ? U[Property]
       : never;
 };
-
 interface BaseCondition {
   id: Id;
-  keyId: Id;
+  keyId: keyof typeof keys;
 }
 interface LimitedItems<Item> {
   limit: number;
   value: Item[];
 }
 export interface NumericComparison extends BaseCondition {
-  opId: ">" | "<" | ">=" | "<=" | "==" | "!=";
+  opId: 2 | 130 | 3 | 131; //">" | "<" | ">=" | "<=" | "==" | "!=";
   value: number;
+}
+export interface BooleanComparison extends BaseCondition {
+  opId: 4 | 132;
+  value: null;
 }
 export type AtmostSelected<T> = Union<
   BaseCondition,
@@ -38,11 +43,11 @@ export type NoneSelected<T> = Union<
 >;
 export type Condition =
   | NumericComparison
+  | BooleanComparison
   | AtmostSelected<number>
   | AtleastSelected<number>
   | AllSelected<number>
-  | NoneSelected<number>
-  | NumericComparison;
+  | NoneSelected<number>;
 export interface Rule {
   id: Id;
   name: string;
