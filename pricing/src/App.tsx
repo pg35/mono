@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
+import "react-tabs/style/react-tabs.css";
+
 import { doAjax } from "./ajax";
 interface Config {
   enable: boolean;
@@ -13,7 +16,10 @@ interface CoreRoles {
 interface UserRoles {
   [role: string]: Config;
 }
-type State = [CoreRoles, UserRoles];
+interface Settings {
+  base_price_when_on_sale: string;
+}
+type State = [CoreRoles, UserRoles, Settings];
 const defaultConfig: Config = {
   enable: false,
   type: "",
@@ -28,6 +34,9 @@ const initialState1: State = [
   {
     abc: defaultConfig,
     x23: defaultConfig,
+  },
+  {
+    base_price_when_on_sale: "",
   },
 ];
 (window as any).ajaxurl = "https://mpcs6g-8080.csb.app";
@@ -113,7 +122,7 @@ export default function App() {
 
   function handleChange(role: string, name: string, value: string | boolean) {
     console.log(role, name, value);
-    const newState: State = [{ ...state[0] }, { ...state[1] }];
+    const newState: State = [{ ...state[0] }, { ...state[1] }, { ...state[2] }];
     let newConfig = Object.keys(newState[0])
       .filter((x) => x === role)
       .map((x) => newState[0][x as keyof CoreRoles]);
@@ -129,8 +138,8 @@ export default function App() {
     setState(newState);
   }
   //return <h1 className="text-3xl font-bold underline">ehllsw</h1>;
-  return (
-    <div>
+  const pricingUI = 
+
       <div className="overflow-x-auto">
         <table className="border-collapse w-auto">
           <thead>
@@ -167,8 +176,8 @@ export default function App() {
             })}
           </tbody>
         </table>
-      </div>
-      <div className="text-left mt-8">
+      </div>;
+      const submitUI = <div className="text-left mt-8">
         <button
           className="button button-primary"
           disabled={isFetching}
@@ -185,7 +194,7 @@ export default function App() {
                   nonce: pxqpricing.saveNonce,
                 },
               },
-              function (res: any) {
+              function () {
                 //console.log(res);
                 setSuccess("Saved");
               },
@@ -208,7 +217,53 @@ export default function App() {
             {error ? error : null}
           </span>
         ) : null}
-      </div>
-    </div>
-  );
+      </div>;
+      const settingsUI = <div className="mb-4 flex gap-2 flex-wrap items-center">
+      <label
+        htmlFor="pxqpricing_baseprice"
+        className="font-bold basis-64"
+      >
+        Base price for products on sale
+      </label>
+      <select
+        id="pxqpricing_baseprice"
+        className="p-2 basis-64"
+        onChange={(e) =>
+          setState([
+            state[0],
+            state[1],
+            { ...state[2], base_price_when_on_sale: e.target.value },
+          ])
+        }
+      >
+        <option value="">Exclude products already on sale</option>
+        <option value="sale">Sale price</option>
+        <option value="regular">Regular price</option>
+      </select>
+
+      <p className="description">
+        Select whether to change the price of on-sale products. If yes,
+        then which price (sale or regular) you want to use as base price.
+        The base price will be increased or decreased by the price change.
+      </p>
+    </div>;
+    return (
+      <div>
+         <Tabs>
+        <TabList>
+          <Tab>Pricing</Tab>
+          <Tab>Settings</Tab>
+        </TabList>
+
+        <TabPanel>
+        {pricingUI}
+        </TabPanel>
+        <TabPanel>
+        {settingsUI}
+        </TabPanel>
+        </Tabs>
+        {submitUI}
+        </div>
+    );
+
 }

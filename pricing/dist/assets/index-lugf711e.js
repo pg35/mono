@@ -55,7 +55,7 @@ var react_production_min = {};
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-var l$1 = Symbol.for("react.element"), n$1 = Symbol.for("react.portal"), p$2 = Symbol.for("react.fragment"), q$1 = Symbol.for("react.strict_mode"), r = Symbol.for("react.profiler"), t = Symbol.for("react.provider"), u = Symbol.for("react.context"), v$1 = Symbol.for("react.forward_ref"), w = Symbol.for("react.suspense"), x = Symbol.for("react.memo"), y = Symbol.for("react.lazy"), z$1 = Symbol.iterator;
+var l$1 = Symbol.for("react.element"), n$1 = Symbol.for("react.portal"), p$2 = Symbol.for("react.fragment"), q$1 = Symbol.for("react.strict_mode"), r$1 = Symbol.for("react.profiler"), t = Symbol.for("react.provider"), u = Symbol.for("react.context"), v$1 = Symbol.for("react.forward_ref"), w = Symbol.for("react.suspense"), x = Symbol.for("react.memo"), y = Symbol.for("react.lazy"), z$1 = Symbol.iterator;
 function A$1(a) {
   if (null === a || "object" !== typeof a)
     return null;
@@ -218,7 +218,7 @@ react_production_min.Children = { map: S$1, forEach: function(a, b, e) {
 } };
 react_production_min.Component = E$1;
 react_production_min.Fragment = p$2;
-react_production_min.Profiler = r;
+react_production_min.Profiler = r$1;
 react_production_min.PureComponent = G$1;
 react_production_min.StrictMode = q$1;
 react_production_min.Suspense = w;
@@ -7584,28 +7584,370 @@ var m = reactDomExports;
   client.createRoot = m.createRoot;
   client.hydrateRoot = m.hydrateRoot;
 }
+function makeTypeChecker(tabsRole) {
+  return (element) => !!element.type && element.type.tabsRole === tabsRole;
+}
+const isTab = makeTypeChecker("Tab");
+const isTabList = makeTypeChecker("TabList");
+const isTabPanel = makeTypeChecker("TabPanel");
+function isTabChild(child) {
+  return isTab(child) || isTabList(child) || isTabPanel(child);
+}
+function deepMap(children, callback) {
+  return reactExports.Children.map(children, (child) => {
+    if (child === null)
+      return null;
+    if (isTabChild(child)) {
+      return callback(child);
+    }
+    if (child.props && child.props.children && typeof child.props.children === "object") {
+      return reactExports.cloneElement(child, { ...child.props, children: deepMap(child.props.children, callback) });
+    }
+    return child;
+  });
+}
+function deepForEach(children, callback) {
+  return reactExports.Children.forEach(children, (child) => {
+    if (child === null)
+      return;
+    if (isTab(child) || isTabPanel(child)) {
+      callback(child);
+    } else if (child.props && child.props.children && typeof child.props.children === "object") {
+      if (isTabList(child))
+        callback(child);
+      deepForEach(child.props.children, callback);
+    }
+  });
+}
+function r(e) {
+  var t2, f2, n2 = "";
+  if ("string" == typeof e || "number" == typeof e)
+    n2 += e;
+  else if ("object" == typeof e)
+    if (Array.isArray(e)) {
+      var o = e.length;
+      for (t2 = 0; t2 < o; t2++)
+        e[t2] && (f2 = r(e[t2])) && (n2 && (n2 += " "), n2 += f2);
+    } else
+      for (f2 in e)
+        e[f2] && (n2 && (n2 += " "), n2 += f2);
+  return n2;
+}
+function clsx() {
+  for (var e, t2, f2 = 0, n2 = "", o = arguments.length; f2 < o; f2++)
+    (e = arguments[f2]) && (t2 = r(e)) && (n2 && (n2 += " "), n2 += t2);
+  return n2;
+}
+function getTabsCount(children) {
+  let tabCount = 0;
+  deepForEach(children, (child) => {
+    if (isTab(child))
+      tabCount++;
+  });
+  return tabCount;
+}
+function isNode(node) {
+  return node && "getAttribute" in node;
+}
+function isTabNode(node) {
+  return isNode(node) && node.getAttribute("data-rttab");
+}
+function isTabDisabled(node) {
+  return isNode(node) && node.getAttribute("aria-disabled") === "true";
+}
+let canUseActiveElement;
+function determineCanUseActiveElement(environment) {
+  const env = environment || (typeof window !== "undefined" ? window : void 0);
+  try {
+    canUseActiveElement = !!(typeof env !== "undefined" && env.document && env.document.activeElement);
+  } catch (e) {
+    canUseActiveElement = false;
+  }
+}
+const defaultProps$4 = { className: "react-tabs", focus: false };
+const UncontrolledTabs = (props) => {
+  let tabNodes = reactExports.useRef([]);
+  let tabIds = reactExports.useRef([]);
+  const ref = reactExports.useRef();
+  function setSelected(index, event) {
+    if (index < 0 || index >= getTabsCount$1())
+      return;
+    const { onSelect: onSelect2, selectedIndex: selectedIndex2 } = props;
+    onSelect2(index, selectedIndex2, event);
+  }
+  function getNextTab(index) {
+    const count = getTabsCount$1();
+    for (let i = index + 1; i < count; i++) {
+      if (!isTabDisabled(getTab(i))) {
+        return i;
+      }
+    }
+    for (let i = 0; i < index; i++) {
+      if (!isTabDisabled(getTab(i))) {
+        return i;
+      }
+    }
+    return index;
+  }
+  function getPrevTab(index) {
+    let i = index;
+    while (i--) {
+      if (!isTabDisabled(getTab(i))) {
+        return i;
+      }
+    }
+    i = getTabsCount$1();
+    while (i-- > index) {
+      if (!isTabDisabled(getTab(i))) {
+        return i;
+      }
+    }
+    return index;
+  }
+  function getFirstTab() {
+    const count = getTabsCount$1();
+    for (let i = 0; i < count; i++) {
+      if (!isTabDisabled(getTab(i))) {
+        return i;
+      }
+    }
+    return null;
+  }
+  function getLastTab() {
+    let i = getTabsCount$1();
+    while (i--) {
+      if (!isTabDisabled(getTab(i))) {
+        return i;
+      }
+    }
+    return null;
+  }
+  function getTabsCount$1() {
+    const { children: children2 } = props;
+    return getTabsCount(children2);
+  }
+  function getTab(index) {
+    return tabNodes.current[`tabs-${index}`];
+  }
+  function getChildren() {
+    let index = 0;
+    const { children: children2, disabledTabClassName: disabledTabClassName2, focus: focus2, forceRenderTabPanel: forceRenderTabPanel2, selectedIndex: selectedIndex2, selectedTabClassName: selectedTabClassName2, selectedTabPanelClassName: selectedTabPanelClassName2, environment: environment2 } = props;
+    tabIds.current = tabIds.current || [];
+    let diff = tabIds.current.length - getTabsCount$1();
+    const id2 = reactExports.useId();
+    while (diff++ < 0) {
+      tabIds.current.push(`${id2}${tabIds.current.length}`);
+    }
+    return deepMap(children2, (child) => {
+      let result = child;
+      if (isTabList(child)) {
+        let listIndex = 0;
+        let wasTabFocused = false;
+        if (canUseActiveElement == null) {
+          determineCanUseActiveElement(environment2);
+        }
+        const env = environment2 || (typeof window !== "undefined" ? window : void 0);
+        if (canUseActiveElement && env) {
+          wasTabFocused = React.Children.toArray(child.props.children).filter(isTab).some((tab, i) => env.document.activeElement === getTab(i));
+        }
+        result = reactExports.cloneElement(child, { children: deepMap(child.props.children, (tab) => {
+          const key = `tabs-${listIndex}`;
+          const selected = selectedIndex2 === listIndex;
+          const props2 = { tabRef: (node) => {
+            tabNodes.current[key] = node;
+          }, id: tabIds.current[listIndex], selected, focus: selected && (focus2 || wasTabFocused) };
+          if (selectedTabClassName2)
+            props2.selectedClassName = selectedTabClassName2;
+          if (disabledTabClassName2)
+            props2.disabledClassName = disabledTabClassName2;
+          listIndex++;
+          return reactExports.cloneElement(tab, props2);
+        }) });
+      } else if (isTabPanel(child)) {
+        const props2 = { id: tabIds.current[index], selected: selectedIndex2 === index };
+        if (forceRenderTabPanel2)
+          props2.forceRender = forceRenderTabPanel2;
+        if (selectedTabPanelClassName2)
+          props2.selectedClassName = selectedTabPanelClassName2;
+        index++;
+        result = reactExports.cloneElement(child, props2);
+      }
+      return result;
+    });
+  }
+  function handleKeyDown(e) {
+    const { direction, disableUpDownKeys: disableUpDownKeys2, disableLeftRightKeys: disableLeftRightKeys2 } = props;
+    if (isTabFromContainer(e.target)) {
+      let { selectedIndex: index } = props;
+      let preventDefault = false;
+      let useSelectedIndex = false;
+      if (e.code === "Space" || e.keyCode === 32 || e.code === "Enter" || e.keyCode === 13) {
+        preventDefault = true;
+        useSelectedIndex = false;
+        handleClick(e);
+      }
+      if (!disableLeftRightKeys2 && (e.keyCode === 37 || e.code === "ArrowLeft") || !disableUpDownKeys2 && (e.keyCode === 38 || e.code === "ArrowUp")) {
+        if (direction === "rtl") {
+          index = getNextTab(index);
+        } else {
+          index = getPrevTab(index);
+        }
+        preventDefault = true;
+        useSelectedIndex = true;
+      } else if (!disableLeftRightKeys2 && (e.keyCode === 39 || e.code === "ArrowRight") || !disableUpDownKeys2 && (e.keyCode === 40 || e.code === "ArrowDown")) {
+        if (direction === "rtl") {
+          index = getPrevTab(index);
+        } else {
+          index = getNextTab(index);
+        }
+        preventDefault = true;
+        useSelectedIndex = true;
+      } else if (e.keyCode === 35 || e.code === "End") {
+        index = getLastTab();
+        preventDefault = true;
+        useSelectedIndex = true;
+      } else if (e.keyCode === 36 || e.code === "Home") {
+        index = getFirstTab();
+        preventDefault = true;
+        useSelectedIndex = true;
+      }
+      if (preventDefault) {
+        e.preventDefault();
+      }
+      if (useSelectedIndex) {
+        setSelected(index, e);
+      }
+    }
+  }
+  function handleClick(e) {
+    let node = e.target;
+    do {
+      if (isTabFromContainer(node)) {
+        if (isTabDisabled(node)) {
+          return;
+        }
+        const index = [].slice.call(node.parentNode.children).filter(isTabNode).indexOf(node);
+        setSelected(index, e);
+        return;
+      }
+    } while ((node = node.parentNode) != null);
+  }
+  function isTabFromContainer(node) {
+    if (!isTabNode(node)) {
+      return false;
+    }
+    let nodeAncestor = node.parentElement;
+    do {
+      if (nodeAncestor === ref.current)
+        return true;
+      if (nodeAncestor.getAttribute("data-rttabs"))
+        break;
+      nodeAncestor = nodeAncestor.parentElement;
+    } while (nodeAncestor);
+    return false;
+  }
+  const { children, className, disabledTabClassName, domRef, focus, forceRenderTabPanel, onSelect, selectedIndex, selectedTabClassName, selectedTabPanelClassName, environment, disableUpDownKeys, disableLeftRightKeys, ...attributes } = { ...defaultProps$4, ...props };
+  return React.createElement("div", Object.assign({}, attributes, { className: clsx(className), onClick: handleClick, onKeyDown: handleKeyDown, ref: (node) => {
+    ref.current = node;
+    if (domRef)
+      domRef(node);
+  }, "data-rttabs": true }), getChildren());
+};
+UncontrolledTabs.propTypes = {};
+const MODE_CONTROLLED = 0;
+const MODE_UNCONTROLLED = 1;
+const defaultProps$3 = { defaultFocus: false, focusTabOnClick: true, forceRenderTabPanel: false, selectedIndex: null, defaultIndex: null, environment: null, disableUpDownKeys: false, disableLeftRightKeys: false };
+const getModeFromProps = (props) => {
+  return props.selectedIndex === null ? MODE_UNCONTROLLED : MODE_CONTROLLED;
+};
+const Tabs = (props) => {
+  const { children, defaultFocus, defaultIndex, focusTabOnClick, onSelect, ...attributes } = { ...defaultProps$3, ...props };
+  const [focus, setFocus] = reactExports.useState(defaultFocus);
+  const [mode] = reactExports.useState(getModeFromProps(attributes));
+  const [selectedIndex, setSelectedIndex] = reactExports.useState(mode === MODE_UNCONTROLLED ? defaultIndex || 0 : null);
+  reactExports.useEffect(() => {
+    setFocus(false);
+  }, []);
+  if (mode === MODE_UNCONTROLLED) {
+    const tabsCount = getTabsCount(children);
+    reactExports.useEffect(() => {
+      if (selectedIndex != null) {
+        const maxTabIndex = Math.max(0, tabsCount - 1);
+        setSelectedIndex(Math.min(selectedIndex, maxTabIndex));
+      }
+    }, [tabsCount]);
+  }
+  const handleSelected = (index, last, event) => {
+    if (typeof onSelect === "function") {
+      if (onSelect(index, last, event) === false)
+        return;
+    }
+    if (focusTabOnClick) {
+      setFocus(true);
+    }
+    if (mode === MODE_UNCONTROLLED) {
+      setSelectedIndex(index);
+    }
+  };
+  let subProps = { ...props, ...attributes };
+  subProps.focus = focus;
+  subProps.onSelect = handleSelected;
+  if (selectedIndex != null) {
+    subProps.selectedIndex = selectedIndex;
+  }
+  delete subProps.defaultFocus;
+  delete subProps.defaultIndex;
+  delete subProps.focusTabOnClick;
+  return React.createElement(UncontrolledTabs, subProps, children);
+};
+Tabs.propTypes = {};
+Tabs.tabsRole = "Tabs";
+const defaultProps$2 = { className: "react-tabs__tab-list" };
+const TabList = (props) => {
+  const { children, className, ...attributes } = { ...defaultProps$2, ...props };
+  return React.createElement("ul", Object.assign({}, attributes, { className: clsx(className), role: "tablist" }), children);
+};
+TabList.tabsRole = "TabList";
+TabList.propTypes = {};
+const DEFAULT_CLASS$1 = "react-tabs__tab";
+const defaultProps$1 = { className: DEFAULT_CLASS$1, disabledClassName: `${DEFAULT_CLASS$1}--disabled`, focus: false, id: null, selected: false, selectedClassName: `${DEFAULT_CLASS$1}--selected` };
+const Tab = (props) => {
+  let nodeRef = reactExports.useRef();
+  const { children, className, disabled, disabledClassName, focus, id: id2, selected, selectedClassName, tabIndex, tabRef, ...attributes } = { ...defaultProps$1, ...props };
+  reactExports.useEffect(() => {
+    if (selected && focus) {
+      nodeRef.current.focus();
+    }
+  }, [selected, focus]);
+  return React.createElement("li", Object.assign({}, attributes, { className: clsx(className, { [selectedClassName]: selected, [disabledClassName]: disabled }), ref: (node) => {
+    nodeRef.current = node;
+    if (tabRef)
+      tabRef(node);
+  }, role: "tab", id: `tab${id2}`, "aria-selected": selected ? "true" : "false", "aria-disabled": disabled ? "true" : "false", "aria-controls": `panel${id2}`, tabIndex: tabIndex || (selected ? "0" : null), "data-rttab": true }), children);
+};
+Tab.propTypes = {};
+Tab.tabsRole = "Tab";
+const DEFAULT_CLASS = "react-tabs__tab-panel";
+const defaultProps = { className: DEFAULT_CLASS, forceRender: false, selectedClassName: `${DEFAULT_CLASS}--selected` };
+const TabPanel = (props) => {
+  const { children, className, forceRender, id: id2, selected, selectedClassName, ...attributes } = { ...defaultProps, ...props };
+  return React.createElement("div", Object.assign({}, attributes, { className: clsx(className, { [selectedClassName]: selected }), role: "tabpanel", id: `panel${id2}`, "aria-labelledby": `tab${id2}` }), forceRender || selected ? children : null);
+};
+TabPanel.tabsRole = "TabPanel";
+TabPanel.propTypes = {};
 window.ajaxTest = {
   responses: {},
   result: 1
   //1 success, 0 failure,
 };
-function doAjaxDummy(args, onSuccess, onFail, onFinally) {
-  console.log("ajax args", args, window.ajaxTest);
-  setTimeout(() => {
-    window.ajaxTest.result ? onSuccess && onSuccess({
-      success: true,
-      data: window.ajaxTest.responses[args.data.action]
-    }) : onFail && onFail(
-      getAjaxFailReason(
-        {
-          ...{ status: 500 },
-          ...window.ajaxTest.responses[args.data.action]
-        },
-        "timeout1"
-      )
-    );
+function doAjax(args, onSuccess, onFail, onFinally) {
+  return window.jQuery.ajax(window.ajaxurl, { type: "GET", dataType: "json", ...args }).done((data, textStatus, jqXHR) => {
+    onSuccess && onSuccess(data);
+  }).fail(function(jqXHR, textStatus, errorThrown) {
+    onFail && onFail(getAjaxFailReason(jqXHR, textStatus));
+  }).always(() => {
     onFinally && onFinally();
-  }, 1e3);
+  });
 }
 function getAjaxFailReason(x2, exception) {
   var message;
@@ -7648,10 +7990,18 @@ const initialState1 = [
   {
     abc: defaultConfig,
     x23: defaultConfig
+  },
+  {
+    base_price_when_on_sale: ""
   }
 ];
-window.pxqpricing = initialState1;
-const initialState = window.pxqpricing;
+window.ajaxurl = "https://mpcs6g-8080.csb.app";
+window.pxqpricing = JSON.stringify({
+  initialState: initialState1,
+  saveNonce: "savenonce"
+});
+const pxqpricing = JSON.parse(window.pxqpricing);
+const initialState = pxqpricing.initialState;
 function formatFloat(value) {
   const n2 = Number(value);
   return !isNaN(n2) ? n2.toFixed(2) : "0.00";
@@ -7722,7 +8072,7 @@ function App() {
   const [success, setSuccess] = reactExports.useState(null);
   function handleChange(role, name, value) {
     console.log(role, name, value);
-    const newState = [{ ...state[0] }, { ...state[1] }];
+    const newState = [{ ...state[0] }, { ...state[1] }, { ...state[2] }];
     let newConfig = Object.keys(newState[0]).filter((x2) => x2 === role).map((x2) => newState[0][x2]);
     if (newConfig.length) {
       newState[0][role] = { ...newConfig[0], [name]: value };
@@ -7733,76 +8083,109 @@ function App() {
     console.log(state, newState, state[0]["*"] === newState[0]["*"]);
     setState(newState);
   }
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "overflow-x-auto", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("table", { className: "border-collapse w-auto", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("thead", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("tr", { className: "bg-gray-700 text-white", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "w-[80px] text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white", children: "Enable" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white", children: "Role" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "w-[140px] text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white", children: "Price change action" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "w-[110px] text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white", children: "Price change type" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "w-[110px] min-w-[110px] text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white", children: "Value" })
-      ] }) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("tbody", { children: [
-        Object.keys(state[0]).map((x2) => {
-          const config = state[0][x2];
-          return /* @__PURE__ */ jsxRuntimeExports.jsx(Row, { role: x2, config, onChange: handleChange }, x2);
-        }),
-        Object.keys(state[1]).map((x2) => {
-          const config = state[1][x2];
-          return /* @__PURE__ */ jsxRuntimeExports.jsx(Row, { role: x2, config, onChange: handleChange }, x2);
-        })
-      ] })
+  const pricingUI = /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "overflow-x-auto", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("table", { className: "border-collapse w-auto", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("thead", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("tr", { className: "bg-gray-700 text-white", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "w-[80px] text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white", children: "Enable" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white", children: "Role" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "w-[140px] text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white", children: "Price change action" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "w-[110px] text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white", children: "Price change type" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "w-[110px] min-w-[110px] text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white", children: "Value" })
     ] }) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-left mt-8", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "button",
-        {
-          className: "button button-primary",
-          disabled: isFetching,
-          onClick: () => {
-            const w2 = window;
-            w2.ajaxTest.responses["pxqpricing_save"] = {
-              saved: true
-            };
-            w2.ajaxTest.result = 0;
-            setIsFetching(true);
-            setError(null);
-            setSuccess(null);
-            doAjaxDummy(
-              {
-                type: "POST",
-                data: {
-                  action: "pxqpricing_save",
-                  state: JSON.stringify(state)
-                }
-              },
-              function() {
-                setSuccess("Saved");
-              },
-              function(msg) {
-                setError(msg);
-              },
-              function() {
-                setIsFetching(false);
-              }
-            );
-          },
-          children: isFetching ? "Saving..." : "Save"
-        }
-      ),
-      success || error ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
-        "span",
-        {
-          className: `ml-4 ${success ? "text-green-900" : "text-red-900"}`,
-          children: [
-            success ? "Saved" : null,
-            error ? error : null
-          ]
-        }
-      ) : null
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("tbody", { children: [
+      Object.keys(state[0]).map((x2) => {
+        const config = state[0][x2];
+        return /* @__PURE__ */ jsxRuntimeExports.jsx(Row, { role: x2, config, onChange: handleChange }, x2);
+      }),
+      Object.keys(state[1]).map((x2) => {
+        const config = state[1][x2];
+        return /* @__PURE__ */ jsxRuntimeExports.jsx(Row, { role: x2, config, onChange: handleChange }, x2);
+      })
     ] })
+  ] }) });
+  const submitUI = /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-left mt-8", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "button",
+      {
+        className: "button button-primary",
+        disabled: isFetching,
+        onClick: () => {
+          setIsFetching(true);
+          setError(null);
+          setSuccess(null);
+          doAjax(
+            {
+              type: "POST",
+              data: {
+                action: "pxqpricing_save",
+                state: JSON.stringify(state),
+                nonce: pxqpricing.saveNonce
+              }
+            },
+            function() {
+              setSuccess("Saved");
+            },
+            function(msg) {
+              setError(msg);
+            },
+            function() {
+              setIsFetching(false);
+            }
+          );
+        },
+        children: isFetching ? "Saving..." : "Save"
+      }
+    ),
+    success || error ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "span",
+      {
+        className: `ml-4 ${success ? "text-green-900" : "text-red-900"}`,
+        children: [
+          success ? "Saved" : null,
+          error ? error : null
+        ]
+      }
+    ) : null
+  ] });
+  const settingsUI = /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-4 flex gap-2 flex-wrap items-center", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "label",
+      {
+        htmlFor: "pxqpricing_baseprice",
+        className: "font-bold basis-64",
+        children: "Base price for products on sale"
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "select",
+      {
+        id: "pxqpricing_baseprice",
+        className: "p-2 basis-64",
+        onChange: (e) => setState([
+          state[0],
+          state[1],
+          { ...state[2], base_price_when_on_sale: e.target.value }
+        ]),
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "Exclude products already on sale" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "sale", children: "Sale price" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "regular", children: "Regular price" })
+        ]
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "description", children: "Select whether to change the price of on-sale products. If yes, then which price (sale or regular) you want to use as base price. The base price will be increased or decreased by the price change." })
+  ] });
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(Tabs, { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs(TabList, { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Tab, { children: "Pricing" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Tab, { children: "Settings" })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(TabPanel, { children: pricingUI }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(TabPanel, { children: settingsUI })
+    ] }),
+    submitUI
   ] });
 }
-client.createRoot(document.getElementById("root")).render(
+client.createRoot(document.getElementById("pxqpricing")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(React.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
