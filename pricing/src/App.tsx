@@ -233,6 +233,7 @@ export default function App() {
             { ...state[2], base_price_when_on_sale: e.target.value },
           ])
         }
+        value={state[2].base_price_when_on_sale}
       >
         <option value="">Exclude products already on sale</option>
         <option value="sale">Sale price</option>
