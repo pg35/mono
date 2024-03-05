@@ -19,7 +19,7 @@ interface LimitedItems<Item> {
 }
 export interface NumericComparison extends BaseCondition {
   opId: 2 | 130 | 3 | 131; //">" | "<" | ">=" | "<=" | "==" | "!=";
-  value: number;
+  value: { value: Id; label: string }[];
 }
 export interface BooleanComparison extends BaseCondition {
   opId: 4 | 132;
@@ -41,13 +41,17 @@ export type NoneSelected<T> = Union<
   BaseCondition,
   { opId: "not same as"; value: T[] }
 >;
-export type Condition =
-  | NumericComparison
-  | BooleanComparison
-  | AtmostSelected<number>
+type Option = {
+  value: Id;
+  label: string;
+};
+
+export type Condition = NumericComparison | BooleanComparison;
+/* | AtmostSelected<number>
   | AtleastSelected<number>
   | AllSelected<number>
   | NoneSelected<number>;
+  */
 export interface Rule {
   id: Id;
   name: string;

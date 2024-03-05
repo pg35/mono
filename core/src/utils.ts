@@ -9,8 +9,9 @@ export function fail(message: string): never {
   throw new Error(message);
 }
 export function createCondition(): Condition {
-  return { id: getNextId(), keyId: 2, opId: 3, value: 5 };
+  return { id: getNextId(), keyId: 2, opId: 3, value: [] };
 }
+/*
 export function createCondition2(): Condition {
   let b = Math.floor(Math.random() * 6);
   switch (b) {
@@ -42,6 +43,7 @@ export function createCondition2(): Condition {
       return fail("Unexhaustive!");
   }
 }
+*/
 export function createRule(): Rule {
   return {
     id: getNextId(),
