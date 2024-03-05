@@ -138,91 +138,89 @@ export default function App() {
     setState(newState);
   }
   //return <h1 className="text-3xl font-bold underline">ehllsw</h1>;
-  const pricingUI = 
-
-      <div className="overflow-x-auto">
-        <table className="border-collapse w-auto">
-          <thead>
-            <tr className="bg-gray-700 text-white">
-              <th className="w-[80px] text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white">
-                Enable
-              </th>
-              <th className="text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white">
-                Role
-              </th>
-              <th className="w-[140px] text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white">
-                Price change action
-              </th>
-              <th className="w-[110px] text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white">
-                Price change type
-              </th>
-              <th className="w-[110px] min-w-[110px] text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white">
-                Value
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {Object.keys(state[0]).map((x) => {
-              const config = state[0][x as keyof CoreRoles];
-              return (
-                <Row key={x} role={x} config={config} onChange={handleChange} />
-              );
-            })}
-            {Object.keys(state[1]).map((x) => {
-              const config = state[1][x as keyof UserRoles];
-              return (
-                <Row key={x} role={x} config={config} onChange={handleChange} />
-              );
-            })}
-          </tbody>
-        </table>
-      </div>;
-      const submitUI = <div className="text-left mt-8">
-        <button
-          className="button button-primary"
-          disabled={isFetching}
-          onClick={() => {
-            setIsFetching(true);
-            setError(null);
-            setSuccess(null);
-            doAjax(
-              {
-                type: "POST",
-                data: {
-                  action: "pxqpricing_save",
-                  state: JSON.stringify(state),
-                  nonce: pxqpricing.saveNonce,
-                },
-              },
-              function () {
-                //console.log(res);
-                setSuccess("Saved");
-              },
-              function (msg: string) {
-                setError(msg);
-              },
-              function () {
-                setIsFetching(false);
-              },
+  const pricingUI = (
+    <div className="overflow-x-auto">
+      <table className="border-collapse w-auto">
+        <thead>
+          <tr className="bg-gray-700 text-white">
+            <th className="w-[80px] text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white">
+              Enable
+            </th>
+            <th className="text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white">
+              Role
+            </th>
+            <th className="w-[140px] text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white">
+              Price change action
+            </th>
+            <th className="w-[110px] text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white">
+              Price change type
+            </th>
+            <th className="w-[110px] min-w-[110px] text-left whitespace-nowrap px-4 py-2 font-medium border border-solid border-white">
+              Value
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.keys(state[0]).map((x) => {
+            const config = state[0][x as keyof CoreRoles];
+            return (
+              <Row key={x} role={x} config={config} onChange={handleChange} />
             );
-          }}
-        >
-          {isFetching ? "Saving..." : "Save"}
-        </button>
-        {success || error ? (
-          <span
-            className={`ml-4 ${success ? "text-green-900" : "text-red-900"}`}
-          >
-            {success ? "Saved" : null}
-            {error ? error : null}
-          </span>
-        ) : null}
-      </div>;
-      const settingsUI = <div className="mb-4 flex gap-2 flex-wrap items-center">
-      <label
-        htmlFor="pxqpricing_baseprice"
-        className="font-bold basis-64"
+          })}
+          {Object.keys(state[1]).map((x) => {
+            const config = state[1][x as keyof UserRoles];
+            return (
+              <Row key={x} role={x} config={config} onChange={handleChange} />
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+  const submitUI = (
+    <div className="text-left mt-8">
+      <button
+        className="button button-primary"
+        disabled={isFetching}
+        onClick={() => {
+          setIsFetching(true);
+          setError(null);
+          setSuccess(null);
+          doAjax(
+            {
+              type: "POST",
+              data: {
+                action: "pxqpricing_save",
+                state: JSON.stringify(state),
+                nonce: pxqpricing.saveNonce,
+              },
+            },
+            function () {
+              //console.log(res);
+              setSuccess("Saved");
+            },
+            function (msg: string) {
+              setError(msg);
+            },
+            function () {
+              setIsFetching(false);
+            },
+          );
+        }}
       >
+        {isFetching ? "Saving..." : "Save"}
+      </button>
+      {success || error ? (
+        <span className={`ml-4 ${success ? "text-green-900" : "text-red-900"}`}>
+          {success ? "Saved" : null}
+          {error ? error : null}
+        </span>
+      ) : null}
+    </div>
+  );
+  const settingsUI = (
+    <div className="mb-4 flex gap-2 flex-wrap items-center">
+      <label htmlFor="pxqpricing_baseprice" className="font-bold basis-64">
         Base price for products on sale
       </label>
       <select
@@ -242,28 +240,24 @@ export default function App() {
       </select>
 
       <p className="description">
-        Select whether to change the price of on-sale products. If yes,
-        then which price (sale or regular) you want to use as base price.
-        The base price will be increased or decreased by the price change.
+        Select whether to change the price of on-sale products. If yes, then
+        which price (sale or regular) you want to use as base price. The base
+        price will be increased or decreased by the price change.
       </p>
-    </div>;
-    return (
-      <div>
-         <Tabs>
+    </div>
+  );
+  return (
+    <div>
+      <Tabs>
         <TabList>
           <Tab>Pricing</Tab>
           <Tab>Settings</Tab>
         </TabList>
 
-        <TabPanel>
-        {pricingUI}
-        </TabPanel>
-        <TabPanel>
-        {settingsUI}
-        </TabPanel>
-        </Tabs>
-        {submitUI}
-        </div>
-    );
-
+        <TabPanel>{pricingUI}</TabPanel>
+        <TabPanel>{settingsUI}</TabPanel>
+      </Tabs>
+      {submitUI}
+    </div>
+  );
 }
